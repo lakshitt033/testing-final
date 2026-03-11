@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Score – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" /><span>Skill Trace</span></a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+      <div class="sidebar-name" id="sidebar-name">Loading...</div>
+      <div class="sidebar-role" id="sidebar-role">👤 Candidate</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Main Menu</div>
+      <a href="candidate-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="edit-profile.html"><span class="nav-icon">✏️</span> Edit Profile</a>
+      <a href="job-search.html"><span class="nav-icon">🔍</span> Job Search</a>
+      <a href="my-applications.html"><span class="nav-icon">📋</span> My Applications</a>
+      <a href="resume-score.html" class="active"><span class="nav-icon">📊</span> Resume Score</a>
+      <div class="sidebar-label">Account</div>
+      <a href="edit-profile.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>AI Resume Score 📊</h1>
+      <p>Your profile completeness score analyzed by our AI engine.</p>
+    </div>
+
+    <!-- Score Hero -->
+    <div class="score-hero">
+      <div class="score-circle" id="score-circle">
+        <div class="score-circle-inner">
+          <div class="score-big" id="score-big">0</div>
+          <div class="score-max">/ 10</div>
+        </div>
+      </div>
+      <h2 id="score-label" style="font-size:1.5rem;margin-bottom:8px">Calculating...</h2>
+      <p id="score-desc" style="color:var(--text-muted);max-width:400px;margin:0 auto;line-height:1.6"></p>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Score Breakdown</span></div>
+
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>🔧 Skill Relevance</span>
+            <span id="p-skills-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="p-skills"></div></div>
+        </div>
+
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>📁 Project Authenticity</span>
+            <span id="p-proj-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="p-proj"></div></div>
+        </div>
+
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>💼 Experience Validation</span>
+            <span id="p-exp-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="p-exp"></div></div>
+        </div>
+
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>🔗 Profile Links</span>
+            <span id="p-links-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="p-links"></div></div>
+        </div>
+
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>📝 Profile Completeness</span>
+            <span id="p-complete-val">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="p-complete"></div></div>
+        </div>
+      </div>
+
+      <!-- Improvement Tips -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">💡 Improvement Tips</span></div>
+        <div id="tips-list"></div>
+        <div style="margin-top:20px">
+          <a href="edit-profile.html" class="btn btn-primary w-full" style="justify-content:center">✏️ Update Profile</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Score Tiers -->
+    <div class="card" style="margin-top:24px">
+      <div class="card-header"><span class="card-title">Score Tiers</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <div id="tier-1" style="text-align:center;padding:16px;border-radius:10px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:8px">🔴</div>
+          <div style="font-weight:700;font-size:0.9rem">0–4</div>
+          <div style="color:var(--text-muted);font-size:0.78rem">Needs Work</div>
+        </div>
+        <div id="tier-2" style="text-align:center;padding:16px;border-radius:10px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:8px">🟡</div>
+          <div style="font-weight:700;font-size:0.9rem">4–6</div>
+          <div style="color:var(--text-muted);font-size:0.78rem">Average</div>
+        </div>
+        <div id="tier-3" style="text-align:center;padding:16px;border-radius:10px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:8px">🟢</div>
+          <div style="font-weight:700;font-size:0.9rem">6–8.5</div>
+          <div style="color:var(--text-muted);font-size:0.78rem">Good</div>
+        </div>
+        <div id="tier-4" style="text-align:center;padding:16px;border-radius:10px;border:1px solid var(--border)">
+          <div style="font-size:1.5rem;margin-bottom:8px">⭐</div>
+          <div style="font-weight:700;font-size:0.9rem">8.5–10</div>
+          <div style="color:var(--text-muted);font-size:0.78rem">Elite</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('candidate');
+  if (user) {
+    const profile = user.profile || {};
+    const score = calculateScore(user);
+
+    // Animate score circle
+    setTimeout(() => {
+      let current = 0;
+      const target = score;
+      const circle = document.getElementById('score-circle');
+      const bigEl = document.getElementById('score-big');
+      const steps = 60;
+      const increment = target / steps;
+      let i = 0;
+      const t = setInterval(() => {
+        i++;
+        current = Math.min(target, current + increment);
+        bigEl.textContent = current.toFixed(1);
+        const deg = (current / 10) * 360;
+        circle.style.background = `conic-gradient(var(--orange) ${deg}deg, var(--bg) ${deg}deg)`;
+        if (i >= steps) clearInterval(t);
+      }, 20);
+    }, 300);
+
+    // Score label
+    let label, desc;
+    if (score >= 8.5) { label = '⭐ Elite Profile'; desc = 'Your profile is outstanding. You\'re in the top 10% of candidates on Skill Trace.'; }
+    else if (score >= 6) { label = '🟢 Strong Profile'; desc = 'Great work! Add more projects and links to reach Elite status.'; }
+    else if (score >= 4) { label = '🟡 Average Profile'; desc = 'Fill in your skills, GitHub, and experience to stand out to recruiters.'; }
+    else { label = '🔴 Needs Improvement'; desc = 'Your profile is incomplete. Complete it to get noticed by top recruiters.'; }
+
+    document.getElementById('score-label').textContent = label;
+    document.getElementById('score-desc').textContent = desc;
+
+    // Progress bars
+    const hasSkills = profile.skills && profile.skills.length > 0;
+    const hasProjects = !!profile.projects;
+    const hasExp = !!profile.experience;
+    const hasLinks = !!(profile.github || profile.linkedin);
+    const fields = [!!user.name, !!profile.role, hasSkills, hasExp, hasProjects, !!profile.github, !!profile.linkedin];
+    const completePct = Math.round(fields.filter(Boolean).length / fields.length * 100);
+
+    setTimeout(() => {
+      const sp = (val, barId, valId) => {
+        document.getElementById(valId).textContent = val + '%';
+        animateProgress(document.getElementById(barId), val);
+      };
+      sp(hasSkills ? Math.min(100, (profile.skills.length / 5) * 100) : 0, 'p-skills', 'p-skills-val');
+      sp(hasProjects ? 80 : 0, 'p-proj', 'p-proj-val');
+      sp(hasExp ? 90 : 0, 'p-exp', 'p-exp-val');
+      sp(hasLinks ? (profile.github && profile.linkedin ? 100 : 50) : 0, 'p-links', 'p-links-val');
+      sp(completePct, 'p-complete', 'p-complete-val');
+    }, 400);
+
+    // Tips
+    const tips = [];
+    if (!hasSkills) tips.push({ icon: '🔧', text: 'Add your technical skills to attract relevant jobs.' });
+    if (!hasProjects) tips.push({ icon: '📁', text: 'List your projects to showcase real-world experience.' });
+    if (!profile.github) tips.push({ icon: '🐙', text: 'Connect your GitHub to verify coding activity.' });
+    if (!profile.linkedin) tips.push({ icon: '💼', text: 'Add LinkedIn for professional network verification.' });
+    if (!hasExp) tips.push({ icon: '💡', text: 'Write about your work experience to improve validation.' });
+    if (!profile.portfolio) tips.push({ icon: '🌐', text: 'Add a portfolio URL to stand out from the crowd.' });
+    if (tips.length === 0) tips.push({ icon: '🎉', text: 'Your profile is complete! Keep it updated.' });
+
+    const tipsEl = document.getElementById('tips-list');
+    tips.forEach(t => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.88rem;color:var(--text-muted)';
+      div.innerHTML = `<span style="font-size:1.2rem;flex-shrink:0">${t.icon}</span>${t.text}`;
+      tipsEl.appendChild(div);
+    });
+
+    // Highlight tier
+    const tierMap = { 'tier-1': score < 4, 'tier-2': score >= 4 && score < 6, 'tier-3': score >= 6 && score < 8.5, 'tier-4': score >= 8.5 };
+    Object.entries(tierMap).forEach(([id, active]) => {
+      if (active) {
+        const el = document.getElementById(id);
+        el.style.borderColor = 'var(--orange)';
+        el.style.background = 'rgba(249,115,22,0.08)';
+      }
+    });
+  }
+</script>
+</body>
+</html>

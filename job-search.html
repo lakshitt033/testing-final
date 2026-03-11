@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Search – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html">
+    <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+    <span>Skill Trace</span>
+  </a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+      <div class="sidebar-name" id="sidebar-name">Loading...</div>
+      <div class="sidebar-role" id="sidebar-role">👤 Candidate</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Main Menu</div>
+      <a href="candidate-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="edit-profile.html"><span class="nav-icon">✏️</span> Edit Profile</a>
+      <a href="job-search.html" class="active"><span class="nav-icon">🔍</span> Job Search</a>
+      <a href="my-applications.html"><span class="nav-icon">📋</span> My Applications</a>
+      <a href="resume-score.html"><span class="nav-icon">📊</span> Resume Score</a>
+      <div class="sidebar-label">Account</div>
+      <a href="edit-profile.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Job Search 🔍</h1>
+      <p>Explore verified job openings and apply with your Skill Trace profile.</p>
+    </div>
+
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="job-search-input" placeholder="Search jobs by title, company or skill..." oninput="filterJobs()" />
+    </div>
+
+    <div style="display:flex;gap:7px;margin-bottom:20px;flex-wrap:wrap" id="filter-tags">
+      <button class="skill-tag" style="cursor:pointer;padding:5px 13px" onclick="setFilter('')">All Jobs</button>
+    </div>
+
+    <div id="recommended-banner" style="background:rgba(249,115,22,0.07);border:1px solid rgba(249,115,22,0.18);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:none">
+      <div style="font-size:0.77rem;color:var(--orange);font-weight:700;margin-bottom:5px">✨ RECOMMENDED FOR YOU</div>
+      <div id="recommended-list"></div>
+    </div>
+
+    <div id="results-info" style="font-size:0.83rem;color:var(--text-muted);margin-bottom:14px"></div>
+
+    <div class="jobs-grid" id="jobs-grid"></div>
+    <div id="empty-jobs" class="empty-state hidden">
+      <div class="empty-icon">🔍</div>
+      <h3>No Jobs Found</h3>
+      <p>Try a different search term or check back later.</p>
+    </div>
+  </main>
+</div>
+
+<!-- Apply Success Modal -->
+<div class="modal-overlay" id="apply-modal">
+  <div class="modal" style="max-width:400px">
+    <div style="text-align:center;padding:16px">
+      <div style="font-size:2.8rem;margin-bottom:14px">🎉</div>
+      <h2 style="margin-bottom:8px;font-size:1.3rem">Application Sent!</h2>
+      <p style="color:var(--text-muted);font-size:0.875rem">Your application has been submitted. The recruiter will review your Skill Trace profile and update the status.</p>
+      <div style="margin-top:20px;padding:13px;background:rgba(249,115,22,0.07);border-radius:10px;font-size:0.83rem;color:var(--text-muted)">
+        📋 Track your application status in <a href="my-applications.html" style="color:var(--orange);font-weight:600">My Applications</a>
+      </div>
+      <button class="btn btn-primary" style="margin-top:18px;padding:11px 28px;width:100%;justify-content:center" onclick="closeModal()">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('candidate');
+  let allJobs = [];
+  let activeFilter = '';
+
+  if (user) {
+    allJobs = getJobs();
+
+    // Filter tags
+    const allSkills = new Set();
+    allJobs.forEach(j => j.skills && j.skills.split(',').forEach(s => allSkills.add(s.trim())));
+    const tagsEl = document.getElementById('filter-tags');
+    allSkills.forEach(skill => {
+      const btn = document.createElement('button');
+      btn.className = 'skill-tag';
+      btn.style.cssText = 'cursor:pointer;padding:5px 13px';
+      btn.textContent = skill;
+      btn.onclick = () => setFilter(skill);
+      tagsEl.appendChild(btn);
+    });
+
+    // Recommended banner
+    const userSkills = (user.profile && user.profile.skills) || [];
+    if (userSkills.length > 0) {
+      const recommended = allJobs.filter(job => {
+        const jobSkills = (job.skills || '').toLowerCase();
+        return userSkills.some(s => jobSkills.includes(s.toLowerCase()));
+      });
+      if (recommended.length > 0) {
+        document.getElementById('recommended-banner').style.display = 'block';
+        const rl = document.getElementById('recommended-list');
+        recommended.forEach(j => {
+          const span = document.createElement('span');
+          span.style.cssText = 'display:inline-block;background:rgba(249,115,22,0.12);color:var(--orange);padding:3px 11px;border-radius:100px;font-size:0.8rem;font-weight:600;margin:3px;cursor:pointer';
+          span.textContent = j.title + ' @ ' + j.company;
+          span.onclick = () => { document.getElementById('job-search-input').value = j.title; filterJobs(); };
+          rl.appendChild(span);
+        });
+      }
+    }
+    renderJobs();
+  }
+
+  function setFilter(skill) { activeFilter = skill; renderJobs(); }
+  function filterJobs() { renderJobs(); }
+
+  function renderJobs() {
+    const query = (document.getElementById('job-search-input').value || '').toLowerCase();
+    const grid = document.getElementById('jobs-grid');
+    const emptyEl = document.getElementById('empty-jobs');
+    grid.innerHTML = '';
+
+    const apps = getApplications();
+    const filtered = allJobs.filter(job => {
+      const text = (job.title + job.company + job.skills + job.description).toLowerCase();
+      return (!query || text.includes(query)) && (!activeFilter || (job.skills||'').toLowerCase().includes(activeFilter.toLowerCase()));
+    });
+
+    document.getElementById('results-info').textContent = `Showing ${filtered.length} of ${allJobs.length} jobs`;
+
+    if (filtered.length === 0) { emptyEl.classList.remove('hidden'); return; }
+    emptyEl.classList.add('hidden');
+
+    filtered.forEach(job => {
+      const applied = apps.find(a => a.jobId === job.id && a.candidateEmail === user.email);
+      const skillTags = (job.skills || '').split(',').map(s => `<span class="skill-tag">${s.trim()}</span>`).join('');
+
+      const card = document.createElement('div');
+      card.className = 'job-card';
+      card.innerHTML = `
+        <div class="job-company">🏢 ${job.company}</div>
+        <div class="job-title">${job.title}</div>
+        <div class="job-meta">
+          <span>💼 ${job.experience}</span>
+          <span>📅 ${job.postedAt}</span>
+        </div>
+        <div class="skills-wrap">${skillTags}</div>
+        <div class="job-desc">${job.description}</div>
+        <div style="display:flex;gap:9px;align-items:center">
+          ${applied
+            ? `<span class="app-status ${getStatusClass(applied.status)}">${getStatusIcon(applied.status)} ${applied.status}</span>`
+            : `<button class="btn btn-primary btn-sm" onclick="applyJob('${job.id}', this)">🚀 Apply Now</button>`
+          }
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function applyJob(jobId, btn) {
+    const success = applyToJob(jobId, user.email);
+    if (success) {
+      document.getElementById('apply-modal').classList.add('open');
+      btn.outerHTML = `<span class="app-status app-status-applied">📨 Applied</span>`;
+    } else {
+      showToast('You already applied to this job.', 'error');
+    }
+  }
+  function closeModal() { document.getElementById('apply-modal').classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }); });
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html">
+    <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+    <span>Skill Trace</span>
+  </a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+    <a href="edit-profile.html" class="btn btn-outline btn-sm">✏️ Edit Profile</a>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+      <div class="sidebar-name" id="sidebar-name">Loading...</div>
+      <div class="sidebar-role" id="sidebar-role">👤 Candidate</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Main Menu</div>
+      <a href="candidate-dashboard.html" class="active"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="edit-profile.html"><span class="nav-icon">✏️</span> Edit Profile</a>
+      <a href="job-search.html"><span class="nav-icon">🔍</span> Job Search</a>
+      <a href="my-applications.html"><span class="nav-icon">📋</span> My Applications</a>
+      <a href="resume-score.html"><span class="nav-icon">📊</span> Resume Score</a>
+      <div class="sidebar-label">Account</div>
+      <a href="edit-profile.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Welcome back, <span id="user-firstname" class="text-orange">Candidate</span>! 👋</h1>
+      <p>Here's your activity overview and profile status.</p>
+    </div>
+
+    <!-- Verification Banner -->
+    <div id="verify-banner" style="display:none;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.25);border-radius:12px;padding:14px 18px;margin-bottom:20px;align-items:center;gap:12px">
+      <span style="font-size:1.3rem">⚠️</span>
+      <div>
+        <strong style="font-size:0.9rem">Profile Not Verified</strong>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:2px">Complete your profile to get verified and increase recruiter visibility.</p>
+      </div>
+      <a href="edit-profile.html" class="btn btn-warning btn-sm" style="margin-left:auto;white-space:nowrap">Complete Profile</a>
+    </div>
+
+    <!-- STATS GRID — all cards are clickable -->
+    <div class="stats-grid">
+      <div class="stat-card" style="--card-color:#f97316" onclick="openModal('views')">
+        <div class="stat-card-icon">👀</div>
+        <div class="stat-card-value" id="stat-views">0</div>
+        <div class="stat-card-label">Profile Views</div>
+        <div class="stat-card-change">↑ Click to see who viewed</div>
+      </div>
+      <div class="stat-card" style="--card-color:#22c55e" onclick="openModal('apps')">
+        <div class="stat-card-icon">📨</div>
+        <div class="stat-card-value" id="stat-apps">0</div>
+        <div class="stat-card-label">Applications Sent</div>
+        <div class="stat-card-change">↑ Click to view list</div>
+      </div>
+      <div class="stat-card" style="--card-color:#3b82f6" onclick="openModal('score')">
+        <div class="stat-card-icon">📊</div>
+        <div class="stat-card-value" id="stat-score">0</div>
+        <div class="stat-card-label">Resume Score / 10</div>
+        <div class="stat-card-change">↑ Click for breakdown</div>
+      </div>
+      <div class="stat-card" style="--card-color:#a855f7" onclick="openModal('shortlisted')">
+        <div class="stat-card-icon">⭐</div>
+        <div class="stat-card-value" id="stat-shortlisted">0</div>
+        <div class="stat-card-label">Shortlisted / Accepted</div>
+        <div class="stat-card-change">↑ Click to see</div>
+      </div>
+    </div>
+
+    <!-- ROW -->
+    <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:20px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Profile Completion</span>
+          <span id="profile-pct" style="font-family:'Poppins',sans-serif;color:var(--orange);font-weight:700">0%</span>
+        </div>
+        <div id="completion-items"></div>
+        <a href="edit-profile.html" class="btn btn-primary w-full mt-16" style="justify-content:center">Complete Profile</a>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔥 Recommended Jobs</span>
+          <a href="job-search.html" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        <div id="recommended-jobs"></div>
+      </div>
+    </div>
+
+    <!-- Verification Status -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Verification Status</span></div>
+      <div style="display:flex;align-items:center;gap:18px">
+        <div id="verify-status-icon" style="font-size:2.2rem">⏳</div>
+        <div>
+          <div id="verify-status-text" style="font-size:1.05rem;font-weight:600">Pending Verification</div>
+          <div style="color:var(--text-muted);font-size:0.84rem;margin-top:3px" id="verify-status-sub">Complete your profile and wait for recruiter verification.</div>
+        </div>
+        <div id="verify-badge-wrap" style="margin-left:auto"></div>
+      </div>
+    </div>
+
+    <!-- Recent Application Status -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Recent Application Status</span>
+        <a href="my-applications.html" class="btn btn-outline btn-sm">View All</a>
+      </div>
+      <div id="recent-app-status"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── MODAL: Profile Views ──────────────────── -->
+<div class="modal-overlay" id="modal-views">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">👀 Companies That Viewed Your Profile</span>
+      <button class="modal-close" onclick="closeModal('views')">✕</button>
+    </div>
+    <div id="modal-views-content"></div>
+  </div>
+</div>
+
+<!-- ── MODAL: My Applications ────────────────── -->
+<div class="modal-overlay" id="modal-apps">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <span class="modal-title">📨 My Applications</span>
+      <button class="modal-close" onclick="closeModal('apps')">✕</button>
+    </div>
+    <div id="modal-apps-content"></div>
+  </div>
+</div>
+
+<!-- ── MODAL: Resume Score ───────────────────── -->
+<div class="modal-overlay" id="modal-score">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">📊 Resume Score Breakdown</span>
+      <button class="modal-close" onclick="closeModal('score')">✕</button>
+    </div>
+    <div id="modal-score-content"></div>
+  </div>
+</div>
+
+<!-- ── MODAL: Shortlisted ────────────────────── -->
+<div class="modal-overlay" id="modal-shortlisted">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">⭐ Shortlisted & Accepted Applications</span>
+      <button class="modal-close" onclick="closeModal('shortlisted')">✕</button>
+    </div>
+    <div id="modal-shortlisted-content"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('candidate');
+  if (user) {
+    document.getElementById('user-firstname').textContent = user.name.split(' ')[0];
+
+    const score = calculateScore(user);
+    document.getElementById('stat-score').textContent = score;
+
+    const allApps = getApplications().filter(a => a.candidateEmail === user.email);
+    animateNumber(document.getElementById('stat-apps'), allApps.length);
+    animateNumber(document.getElementById('stat-views'), getProfileViews(user.email));
+
+    const accepted = allApps.filter(a => a.status === 'Accepted' || a.status === 'Shortlisted').length;
+    animateNumber(document.getElementById('stat-shortlisted'), accepted);
+
+    // Profile completion
+    const profile = user.profile || {};
+    const checks = [
+      { label: 'Full Name', done: !!user.name },
+      { label: 'Role / Title', done: !!profile.role },
+      { label: 'Skills Added', done: !!(profile.skills && profile.skills.length > 0) },
+      { label: 'Experience', done: !!profile.experience },
+      { label: 'Projects', done: !!profile.projects },
+      { label: 'GitHub URL', done: !!profile.github },
+      { label: 'LinkedIn URL', done: !!profile.linkedin },
+    ];
+    const done = checks.filter(c => c.done).length;
+    const pct = Math.round((done / checks.length) * 100);
+    document.getElementById('profile-pct').textContent = pct + '%';
+    const ciEl = document.getElementById('completion-items');
+    checks.forEach(c => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.84rem';
+      div.innerHTML = `<span style="color:${c.done ? 'var(--success)' : 'var(--text-dim)'}">${c.done ? '✅' : '⭕'}</span> ${c.label}`;
+      ciEl.appendChild(div);
+    });
+
+    // Verification status
+    const vs = user.verificationStatus || 'pending';
+    const statusMap = {
+      verified: { icon: '✅', text: 'Verified', sub: 'Your profile has been verified by recruiters.', badge: 'badge-verified' },
+      pending:  { icon: '⏳', text: 'Pending Verification', sub: 'Complete your profile and wait for recruiter verification.', badge: 'badge-pending' },
+      rejected: { icon: '❌', text: 'Verification Rejected', sub: 'Some credentials could not be verified. Update your profile.', badge: 'badge-rejected' }
+    };
+    const sm = statusMap[vs] || statusMap.pending;
+    document.getElementById('verify-status-icon').textContent = sm.icon;
+    document.getElementById('verify-status-text').textContent = sm.text;
+    document.getElementById('verify-status-sub').textContent = sm.sub;
+    document.getElementById('verify-badge-wrap').innerHTML = `<span class="verification-badge ${sm.badge}">${sm.text}</span>`;
+
+    // Recommended jobs
+    const jobs = getJobs().slice(0, 3);
+    const rjEl = document.getElementById('recommended-jobs');
+    if (jobs.length === 0) {
+      rjEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><h3>No Jobs Yet</h3><p>Recruiters haven\'t posted jobs yet.</p></div>';
+    } else {
+      jobs.forEach(job => {
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:11px;border:1px solid var(--border);border-radius:10px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all 0.2s';
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:600;font-size:0.88rem">${job.title}</div>
+            <div style="color:var(--orange);font-size:0.78rem">${job.company}</div>
+            <div style="color:var(--text-muted);font-size:0.76rem;margin-top:3px">💼 ${job.experience}</div>
+          </div>
+          <a href="job-search.html" class="btn btn-primary btn-sm" style="white-space:nowrap">Apply</a>`;
+        rjEl.appendChild(div);
+      });
+    }
+
+    // Recent application status (synced from recruiter actions)
+    const rasEl = document.getElementById('recent-app-status');
+    const recentApps = allApps.slice(-4).reverse();
+    if (recentApps.length === 0) {
+      rasEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h3>No applications yet</h3><p>Apply to jobs and track status here.</p></div>';
+    } else {
+      recentApps.forEach(app => {
+        const job = getJobs().find(j => j.id === app.jobId);
+        if (!job) return;
+        const statusClass = getStatusClass(app.status);
+        const statusIcon = getStatusIcon(app.status);
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid var(--border)';
+        div.innerHTML = `
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:0.88rem">${job.title}</div>
+            <div style="color:var(--orange);font-size:0.78rem">${job.company}</div>
+          </div>
+          <span class="app-status ${statusClass}">${statusIcon} ${app.status}</span>`;
+        rasEl.appendChild(div);
+      });
+    }
+
+    // Banner
+    if (vs !== 'verified' && pct < 60) {
+      document.getElementById('verify-banner').style.display = 'flex';
+    }
+  }
+
+  // ── MODAL LOGIC ────────────────────────────
+  function openModal(type) {
+    const modal = document.getElementById('modal-' + type);
+    if (!modal) return;
+    const contentEl = document.getElementById('modal-' + type + '-content');
+    contentEl.innerHTML = '';
+
+    if (type === 'views') {
+      // Simulated companies
+      const companies = [
+        { name: 'TechCorp Inc.', role: 'Senior Frontend Developer', time: '2 hours ago', logo: '🏢' },
+        { name: 'DataFlow Systems', role: 'Full Stack Engineer', time: '1 day ago', logo: '📊' },
+        { name: 'DesignStudio', role: 'UI/UX Designer', time: '2 days ago', logo: '🎨' },
+        { name: 'CloudBase Inc.', role: 'Frontend Developer', time: '3 days ago', logo: '☁️' },
+        { name: 'FinTech Labs', role: 'React Developer', time: '1 week ago', logo: '💳' },
+      ];
+      companies.forEach(c => {
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:13px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:9px';
+        div.innerHTML = `
+          <div style="font-size:1.8rem;flex-shrink:0">${c.logo}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:0.9rem">${c.name}</div>
+            <div style="color:var(--text-muted);font-size:0.8rem">${c.role}</div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-dim)">${c.time}</div>`;
+        contentEl.appendChild(div);
+      });
+    }
+
+    else if (type === 'apps') {
+      const apps = getApplications().filter(a => a.candidateEmail === user.email);
+      if (apps.length === 0) {
+        contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h3>No applications yet</h3><p>Browse and apply to jobs.</p></div>';
+      } else {
+        apps.forEach(app => {
+          const job = getJobs().find(j => j.id === app.jobId);
+          if (!job) return;
+          const statusClass = getStatusClass(app.status);
+          const statusIcon = getStatusIcon(app.status);
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:13px;border:1px solid var(--border);border-radius:10px;margin-bottom:9px;display:flex;align-items:center;gap:13px';
+          div.innerHTML = `
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:0.9rem">${job.title}</div>
+              <div style="color:var(--orange);font-size:0.8rem">${job.company}</div>
+              <div style="color:var(--text-dim);font-size:0.75rem;margin-top:3px">Applied: ${app.appliedAt}${app.updatedAt ? ' · Updated: '+app.updatedAt : ''}</div>
+            </div>
+            <span class="app-status ${statusClass}">${statusIcon} ${app.status}</span>`;
+          contentEl.appendChild(div);
+        });
+      }
+    }
+
+    else if (type === 'score') {
+      const s = calculateScore(user);
+      const profile = user.profile || {};
+      const items = [
+        { label: '🔧 Skill Relevance', pct: profile.skills && profile.skills.length ? Math.min(100, profile.skills.length * 20) : 0 },
+        { label: '📁 Project Authenticity', pct: profile.projects ? 80 : 0 },
+        { label: '💼 Experience Validation', pct: profile.experience ? 90 : 0 },
+        { label: '🔗 GitHub Connected', pct: profile.github ? 100 : 0 },
+        { label: '💼 LinkedIn Connected', pct: profile.linkedin ? 100 : 0 },
+        { label: '🌐 Portfolio Added', pct: profile.portfolio ? 100 : 0 },
+      ];
+      contentEl.innerHTML = `
+        <div style="text-align:center;margin-bottom:20px">
+          <div style="font-family:'Poppins',sans-serif;font-size:3rem;font-weight:700;color:var(--orange)">${s}</div>
+          <div style="color:var(--text-muted);font-size:0.875rem">out of 10</div>
+        </div>`;
+      items.forEach(item => {
+        const d = document.createElement('div');
+        d.className = 'progress-item';
+        d.innerHTML = `
+          <div class="progress-label"><span>${item.label}</span><span>${item.pct}%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>`;
+        contentEl.appendChild(d);
+        setTimeout(() => { d.querySelector('.progress-fill').style.width = item.pct + '%'; }, 100);
+      });
+      const tip = document.createElement('a');
+      tip.href = 'resume-score.html';
+      tip.className = 'btn btn-primary w-full mt-16';
+      tip.style.cssText = 'justify-content:center;margin-top:16px';
+      tip.textContent = '📊 View Full Score Page';
+      contentEl.appendChild(tip);
+    }
+
+    else if (type === 'shortlisted') {
+      const apps = getApplications().filter(a => a.candidateEmail === user.email && (a.status === 'Accepted' || a.status === 'Shortlisted'));
+      if (apps.length === 0) {
+        contentEl.innerHTML = '<div class="empty-state"><div class="empty-icon">⭐</div><h3>No shortlisted applications yet</h3><p>Keep applying to jobs to get noticed!</p></div>';
+      } else {
+        apps.forEach(app => {
+          const job = getJobs().find(j => j.id === app.jobId);
+          if (!job) return;
+          const statusClass = getStatusClass(app.status);
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:13px;border:1px solid rgba(34,197,94,0.2);background:rgba(34,197,94,0.04);border-radius:10px;margin-bottom:9px;display:flex;align-items:center;gap:13px';
+          div.innerHTML = `
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:0.9rem">${job.title}</div>
+              <div style="color:var(--orange);font-size:0.8rem">${job.company}</div>
+            </div>
+            <span class="app-status ${statusClass}">${getStatusIcon(app.status)} ${app.status}</span>`;
+          contentEl.appendChild(div);
+        });
+      }
+    }
+
+    modal.classList.add('open');
+  }
+
+  function closeModal(type) {
+    document.getElementById('modal-' + type).classList.remove('open');
+  }
+
+  // Close on backdrop click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  });
+</script>
+</body>
+</html>

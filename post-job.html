@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Job – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" /><span>Skill Trace</span></a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">R</div>
+      <div class="sidebar-name" id="sidebar-name">Recruiter</div>
+      <div class="sidebar-role" id="sidebar-role">🏢 Recruiter</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Recruiting</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="candidate-search.html"><span class="nav-icon">🔍</span> Search Candidates</a>
+      <a href="post-job.html" class="active"><span class="nav-icon">📝</span> Post Job</a>
+      <a href="verification.html"><span class="nav-icon">🛡️</span> Verification System</a>
+      <a href="ai-analysis.html"><span class="nav-icon">🤖</span> AI Analysis</a>
+      <div class="sidebar-label">Reports</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">📈</span> Reports</a>
+      <a href="post-job.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Post a Job 📝</h1>
+      <p>Create a verified job listing that candidates can apply to.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:24px">
+
+      <!-- Form -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Job Details</span></div>
+
+        <div id="error-msg" class="error-msg"></div>
+
+        <div class="form-group">
+          <label>Job Title *</label>
+          <input type="text" id="job-title" placeholder="e.g. Senior Frontend Developer" />
+        </div>
+        <div class="form-group">
+          <label>Company Name *</label>
+          <input type="text" id="job-company" placeholder="e.g. TechCorp Inc." />
+        </div>
+        <div class="form-group">
+          <label>Required Skills (comma separated) *</label>
+          <input type="text" id="job-skills" placeholder="e.g. React, TypeScript, Node.js" />
+        </div>
+        <div class="form-group">
+          <label>Experience Required *</label>
+          <input type="text" id="job-experience" placeholder="e.g. 3+ years" />
+        </div>
+        <div class="form-group">
+          <label>Job Description *</label>
+          <textarea id="job-desc" placeholder="Describe the role, responsibilities, and benefits..." style="min-height:140px"></textarea>
+        </div>
+
+        <div style="display:flex;gap:12px">
+          <button class="btn btn-primary" onclick="postJob()" style="padding:12px 28px">🚀 Post Job</button>
+          <button class="btn btn-outline" onclick="clearForm()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Preview & Posted Jobs -->
+      <div>
+        <!-- Preview Card -->
+        <div class="card" style="margin-bottom:24px">
+          <div class="card-header"><span class="card-title">Live Preview</span></div>
+          <div id="job-preview">
+            <div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:20px">Fill in the form to see a preview</div>
+          </div>
+        </div>
+
+        <!-- Posted Jobs -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Your Posted Jobs</span>
+            <span id="jobs-count" style="font-size:0.8rem;color:var(--text-muted)">0 jobs</span>
+          </div>
+          <div id="posted-jobs-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('recruiter');
+
+  function updatePreview() {
+    const title = document.getElementById('job-title').value || 'Job Title';
+    const company = document.getElementById('job-company').value || 'Company Name';
+    const skills = document.getElementById('job-skills').value || '';
+    const exp = document.getElementById('job-experience').value || 'Not specified';
+    const desc = document.getElementById('job-desc').value || 'Job description will appear here...';
+
+    const skillTags = skills.split(',').filter(s => s.trim()).map(s =>
+      `<span class="skill-tag">${s.trim()}</span>`
+    ).join('');
+
+    document.getElementById('job-preview').innerHTML = `
+      <div style="border:1px solid rgba(249,115,22,0.3);border-radius:10px;padding:20px">
+        <div style="color:var(--orange);font-size:0.82rem;font-weight:600;margin-bottom:6px">🏢 ${company}</div>
+        <div style="font-size:1.1rem;font-weight:700;margin-bottom:10px">${title}</div>
+        <div style="color:var(--text-muted);font-size:0.82rem;margin-bottom:10px">💼 ${exp}</div>
+        <div class="skills-wrap" style="margin-bottom:12px">${skillTags || '<span style="color:var(--text-dim);font-size:0.8rem">No skills added</span>'}</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;line-height:1.5">${desc}</div>
+      </div>
+    `;
+  }
+
+  // Live preview
+  ['job-title','job-company','job-skills','job-experience','job-desc'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+  });
+
+  function postJob() {
+    const title = document.getElementById('job-title').value.trim();
+    const company = document.getElementById('job-company').value.trim();
+    const skills = document.getElementById('job-skills').value.trim();
+    const experience = document.getElementById('job-experience').value.trim();
+    const description = document.getElementById('job-desc').value.trim();
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+
+    if (!title || !company || !skills || !experience || !description) {
+      errEl.textContent = 'Please fill in all required fields.';
+      errEl.style.display = 'block'; return;
+    }
+
+    saveJob({ title, company, skills, experience, description, postedBy: user.email });
+    showToast('Job posted successfully! 🎉');
+    clearForm();
+    renderPostedJobs();
+  }
+
+  function clearForm() {
+    ['job-title','job-company','job-skills','job-experience','job-desc'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    updatePreview();
+  }
+
+  function renderPostedJobs() {
+    const jobs = getJobs().filter(j => j.postedBy === user.email);
+    const listEl = document.getElementById('posted-jobs-list');
+    document.getElementById('jobs-count').textContent = jobs.length + ' job' + (jobs.length !== 1 ? 's' : '');
+
+    if (jobs.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:20px">No jobs posted yet.</div>';
+      return;
+    }
+
+    listEl.innerHTML = '';
+    jobs.slice().reverse().forEach(job => {
+      const apps = getApplications().filter(a => a.jobId === job.id);
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px';
+      div.innerHTML = `
+        <div style="font-weight:700;font-size:0.9rem">${job.title}</div>
+        <div style="color:var(--orange);font-size:0.78rem;margin-top:2px">${job.company}</div>
+        <div style="display:flex;gap:12px;margin-top:6px">
+          <span style="font-size:0.75rem;color:var(--text-muted)">📅 ${job.postedAt}</span>
+          <span style="font-size:0.75rem;color:var(--text-muted)">📨 ${apps.length} applicants</span>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  if (user) {
+    renderPostedJobs();
+    updatePreview();
+  }
+</script>
+</body>
+</html>

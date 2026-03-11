@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Applications – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" /><span>Skill Trace</span></a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+      <div class="sidebar-name" id="sidebar-name">Loading...</div>
+      <div class="sidebar-role" id="sidebar-role">👤 Candidate</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Main Menu</div>
+      <a href="candidate-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="edit-profile.html"><span class="nav-icon">✏️</span> Edit Profile</a>
+      <a href="job-search.html"><span class="nav-icon">🔍</span> Job Search</a>
+      <a href="my-applications.html" class="active"><span class="nav-icon">📋</span> My Applications</a>
+      <a href="resume-score.html"><span class="nav-icon">📊</span> Resume Score</a>
+      <div class="sidebar-label">Account</div>
+      <a href="edit-profile.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>My Applications 📋</h1>
+      <p>Track all your job applications and their status.</p>
+    </div>
+
+    <div id="apps-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Application History</span>
+        <a href="job-search.html" class="btn btn-primary btn-sm">+ Apply to Jobs</a>
+      </div>
+      <div id="apps-list"></div>
+    </div>
+  </main>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('candidate');
+  if (user) {
+    const apps = getApplications().filter(a => a.candidateEmail === user.email);
+    const jobs = getJobs();
+
+    // Stats
+    const statColors = ['#f97316','#22c55e','#a855f7'];
+    const statData = [
+      { label: 'Total Applied', value: apps.length, icon: '📨' },
+      { label: 'Shortlisted', value: apps.filter(a=>a.status==='Shortlisted').length, icon: '⭐' },
+      { label: 'Pending', value: apps.filter(a=>a.status==='Applied').length, icon: '⏳' },
+    ];
+    const statsEl = document.getElementById('apps-stats');
+    statData.forEach((s, i) => {
+      const div = document.createElement('div');
+      div.className = 'stat-card';
+      div.style = `--card-color:${statColors[i]}`;
+      div.innerHTML = `<div class="stat-card-icon">${s.icon}</div><div class="stat-card-value">${s.value}</div><div class="stat-card-label">${s.label}</div>`;
+      statsEl.appendChild(div);
+    });
+
+    // List
+    const listEl = document.getElementById('apps-list');
+    if (apps.length === 0) {
+      listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>No Applications Yet</h3><p>Start applying to verified jobs on Skill Trace.</p><a href="job-search.html" class="btn btn-primary mt-16">Browse Jobs</a></div>`;
+    } else {
+      apps.forEach(app => {
+        const job = jobs.find(j => j.id === app.jobId);
+        if (!job) return;
+        const statusClass = getStatusClass(app.status); const statusIcon = getStatusIcon(app.status);
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:16px;border:1px solid var(--border);border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:16px';
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:700;font-size:1rem">${job.title}</div>
+            <div style="color:var(--orange);font-size:0.82rem;margin-top:2px">${job.company}</div>
+            <div style="color:var(--text-muted);font-size:0.78rem;margin-top:4px">📅 Applied on ${app.appliedAt}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="app-status ${statusClass}">${statusIcon} ${app.status}</span>
+          </div>
+        `;
+        listEl.appendChild(div);
+      });
+    }
+  }
+</script>
+</body>
+</html>

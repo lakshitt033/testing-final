@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Analysis – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" /><span>Skill Trace</span></a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">R</div>
+      <div class="sidebar-name" id="sidebar-name">Recruiter</div>
+      <div class="sidebar-role" id="sidebar-role">🏢 Recruiter</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Recruiting</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="candidate-search.html"><span class="nav-icon">🔍</span> Search Candidates</a>
+      <a href="post-job.html"><span class="nav-icon">📝</span> Post Job</a>
+      <a href="verification.html"><span class="nav-icon">🛡️</span> Verification System</a>
+      <a href="ai-analysis.html" class="active"><span class="nav-icon">🤖</span> AI Analysis</a>
+      <div class="sidebar-label">Reports</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">📈</span> Reports</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>AI Analysis 🤖</h1>
+      <p>Deep AI-powered insights on your candidate pool and hiring performance.</p>
+    </div>
+
+    <!-- AI Score Leaderboard -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏆 Top Candidates by AI Score</span>
+        </div>
+        <div id="leaderboard"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 Score Distribution</span>
+        </div>
+        <canvas id="chart-score-dist" height="240"></canvas>
+      </div>
+    </div>
+
+    <!-- Skills Analysis -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-header">
+        <span class="card-title">🔧 Skills Gap Analysis</span>
+        <span style="font-size:0.82rem;color:var(--text-muted)">Based on job requirements vs available skills</span>
+      </div>
+      <div id="skills-analysis" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px"></div>
+    </div>
+
+    <!-- Job Matching -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🎯 AI Job Matching</span>
+      </div>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:20px">Select a job to see the best-matched candidates.</p>
+      <select id="job-selector" onchange="runJobMatch()" style="padding:10px 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:20px;width:100%;max-width:400px;outline:none">
+        <option value="">-- Select a Job --</option>
+      </select>
+      <div id="job-match-results"></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('recruiter');
+
+  if (user) {
+    const candidates = getUsers().filter(u => u.role === 'candidate');
+    const jobs = getJobs();
+
+    // Leaderboard
+    const sorted = candidates.slice().sort((a,b) => calculateScore(b) - calculateScore(a));
+    const lbEl = document.getElementById('leaderboard');
+    sorted.slice(0,6).forEach((c, i) => {
+      const score = calculateScore(c);
+      const vs = c.verificationStatus || 'pending';
+      const badgeClass = vs === 'verified' ? 'badge-verified' : vs === 'rejected' ? 'badge-rejected' : 'badge-pending';
+      const medals = ['🥇','🥈','🥉'];
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)';
+      div.innerHTML = `
+        <div style="width:28px;text-align:center;font-size:${i<3?'1.2':'0.9'}rem">${i<3 ? medals[i] : '#'+(i+1)}</div>
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0">${c.name.charAt(0)}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:0.88rem">${c.name}</div>
+          <div style="color:var(--text-muted);font-size:0.78rem">${(c.profile && c.profile.role) || 'No role'}</div>
+        </div>
+        <span class="verification-badge ${badgeClass}" style="font-size:0.7rem">${vs}</span>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;color:var(--orange);min-width:32px;text-align:right">${score}</div>
+      `;
+      lbEl.appendChild(div);
+    });
+
+    // Score distribution chart
+    const ranges = { '0-3': 0, '3-5': 0, '5-7': 0, '7-9': 0, '9-10': 0 };
+    candidates.forEach(c => {
+      const s = calculateScore(c);
+      if (s < 3) ranges['0-3']++;
+      else if (s < 5) ranges['3-5']++;
+      else if (s < 7) ranges['5-7']++;
+      else if (s < 9) ranges['7-9']++;
+      else ranges['9-10']++;
+    });
+
+    new Chart(document.getElementById('chart-score-dist'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(ranges),
+        datasets: [{
+          label: 'Candidates',
+          data: Object.values(ranges),
+          backgroundColor: ['#ef4444','#f97316','#eab308','#22c55e','#3b82f6'],
+          borderRadius: 8, borderSkipped: false
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', stepSize: 1 } }
+        }
+      }
+    });
+
+    // Skills gap
+    const skillCount = {};
+    candidates.forEach(c => {
+      const skills = (c.profile && c.profile.skills) || [];
+      skills.forEach(s => { skillCount[s] = (skillCount[s] || 0) + 1; });
+    });
+    const saEl = document.getElementById('skills-analysis');
+    const topSkills = Object.entries(skillCount).sort((a,b) => b[1]-a[1]).slice(0,8);
+    const maxCount = topSkills[0] ? topSkills[0][1] : 1;
+
+    topSkills.forEach(([skill, count]) => {
+      const pct = Math.round(count / maxCount * 100);
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--border)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:600;font-size:0.88rem">${skill}</div>
+          <div style="color:var(--orange);font-size:0.82rem;font-weight:700">${count} devs</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div style="color:var(--text-dim);font-size:0.75rem;margin-top:6px">${pct}% of candidates</div>
+      `;
+      saEl.appendChild(div);
+    });
+    if (topSkills.length === 0) {
+      saEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><h3>No skills data yet</h3><p>Candidates need to fill in their profiles.</p></div>';
+    }
+
+    // Job selector
+    const select = document.getElementById('job-selector');
+    jobs.forEach(j => {
+      const opt = document.createElement('option');
+      opt.value = j.id;
+      opt.textContent = j.title + ' @ ' + j.company;
+      select.appendChild(opt);
+    });
+
+    window.runJobMatch = function() {
+      const jobId = select.value;
+      const el = document.getElementById('job-match-results');
+      el.innerHTML = '';
+      if (!jobId) return;
+
+      const job = jobs.find(j => j.id === jobId);
+      if (!job) return;
+
+      const jobSkills = (job.skills || '').toLowerCase().split(',').map(s => s.trim());
+
+      const scored = candidates.map(c => {
+        const cSkills = (c.profile && c.profile.skills) || [];
+        const matches = cSkills.filter(s => jobSkills.some(js => s.toLowerCase().includes(js) || js.includes(s.toLowerCase())));
+        const matchPct = jobSkills.length > 0 ? Math.round(matches.length / jobSkills.length * 100) : 0;
+        const aiScore = calculateScore(c);
+        const totalScore = Math.round((matchPct * 0.6) + (aiScore * 4));
+        return { candidate: c, matches, matchPct, aiScore, totalScore };
+      }).sort((a,b) => b.totalScore - a.totalScore).slice(0,5);
+
+      if (scored.length === 0) {
+        el.innerHTML = '<div class="empty-state"><p>No candidates to match.</p></div>';
+        return;
+      }
+
+      scored.forEach((s, i) => {
+        const c = s.candidate;
+        const profile = c.profile || {};
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:16px;padding:14px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px';
+        div.innerHTML = `
+          <div style="font-size:1.2rem;min-width:28px;text-align:center">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</div>
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0">${c.name.charAt(0)}</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:0.9rem">${c.name}</div>
+            <div style="color:var(--text-muted);font-size:0.8rem">${profile.role || 'No role'}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+              ${s.matches.map(m => `<span class="skill-tag" style="font-size:0.7rem">${m}</span>`).join('') || '<span style="font-size:0.75rem;color:var(--text-muted)">No skill matches</span>'}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:\'Syne\',sans-serif;font-size:1.2rem;font-weight:800;color:var(--orange)">${s.matchPct}%</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">match</div>
+          </div>
+          <a href="verification.html?email=${encodeURIComponent(c.email)}" class="btn btn-primary btn-sm">Verify</a>
+        `;
+        el.appendChild(div);
+      });
+    };
+  }
+</script>
+</body>
+</html>

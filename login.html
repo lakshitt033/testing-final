@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<nav class="navbar">
+  <a class="nav-logo" href="index.html">
+    <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+    <span>Skill Trace</span>
+  </a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Sign in to your Skill Trace account.</p>
+    <div id="error-msg" class="error-msg"></div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="login-email" placeholder="your@email.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Your password" />
+    </div>
+    <button class="btn btn-primary w-full" onclick="handleLogin()" style="justify-content:center;padding:12px;margin-bottom:14px">Sign In</button>
+    <div style="border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:14px">
+      <p style="font-size:0.78rem;color:var(--text-muted);font-weight:600;margin-bottom:9px">⚡ Quick Demo Login</p>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <button class="btn btn-outline btn-sm" onclick="quickLogin('alex@demo.com','demo123')" style="justify-content:flex-start">👤 Candidate Demo (Alex Rivera)</button>
+        <button class="btn btn-outline btn-sm" onclick="quickLogin('recruiter@demo.com','demo123')" style="justify-content:flex-start">🏢 Recruiter Demo (TechCorp HR)</button>
+      </div>
+    </div>
+    <div class="auth-link">Don't have an account? <a href="signup.html">Sign Up</a></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  function handleLogin() {
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+    if (!email || !password) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
+    const user = getUserByEmail(email);
+    if (!user || user.password !== password) { errEl.textContent = 'Invalid email or password.'; errEl.style.display = 'block'; return; }
+    setCurrentUser(user);
+    window.location.href = user.role === 'recruiter' ? 'recruiter-dashboard.html' : 'candidate-dashboard.html';
+  }
+  function quickLogin(email, password) {
+    document.getElementById('login-email').value = email;
+    document.getElementById('login-password').value = password;
+    handleLogin();
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+</script>
+</body>
+</html>

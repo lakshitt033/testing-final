@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Candidates – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" /><span>Skill Trace</span></a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+    <a href="post-job.html" class="btn btn-primary btn-sm">+ Post Job</a>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">R</div>
+      <div class="sidebar-name" id="sidebar-name">Recruiter</div>
+      <div class="sidebar-role" id="sidebar-role">🏢 Recruiter</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Recruiting</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="candidate-search.html" class="active"><span class="nav-icon">🔍</span> Search Candidates</a>
+      <a href="post-job.html"><span class="nav-icon">📝</span> Post Job</a>
+      <a href="verification.html"><span class="nav-icon">🛡️</span> Verification System</a>
+      <a href="ai-analysis.html"><span class="nav-icon">🤖</span> AI Analysis</a>
+      <div class="sidebar-label">Reports</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">📈</span> Reports</a>
+      <a href="post-job.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Search Candidates 🔍</h1>
+      <p>Browse and shortlist verified talent from our database.</p>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+      <div class="search-bar" style="flex:1;margin-bottom:0">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="cand-search" placeholder="Search by name, skill, or role..." oninput="renderCandidates()" />
+      </div>
+      <select id="filter-status" onchange="renderCandidates()" style="padding:12px 16px;background:var(--bg-card);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none">
+        <option value="">All Status</option>
+        <option value="verified">✅ Verified</option>
+        <option value="pending">⏳ Pending</option>
+        <option value="rejected">❌ Rejected</option>
+      </select>
+      <select id="filter-sort" onchange="renderCandidates()" style="padding:12px 16px;background:var(--bg-card);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none">
+        <option value="score">Sort: Highest Score</option>
+        <option value="name">Sort: Name A-Z</option>
+      </select>
+    </div>
+
+    <div id="results-count" style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px"></div>
+
+    <div class="candidates-grid" id="candidates-grid"></div>
+
+    <div id="empty-cands" class="empty-state hidden">
+      <div class="empty-icon">👥</div>
+      <h3>No Candidates Found</h3>
+      <p>Try adjusting your filters.</p>
+    </div>
+
+  </main>
+</div>
+
+<!-- Candidate Profile Modal -->
+<div class="modal-overlay" id="profile-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <span class="modal-title">Candidate Profile</span>
+      <span class="modal-close" onclick="closeProfileModal()">✕</span>
+    </div>
+    <div id="profile-modal-content"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('recruiter');
+  let allCandidates = [];
+  let shortlisted = JSON.parse(localStorage.getItem('st_shortlisted') || '[]');
+
+  if (user) {
+    allCandidates = getUsers().filter(u => u.role === 'candidate');
+    renderCandidates();
+  }
+
+  function renderCandidates() {
+    const q = (document.getElementById('cand-search').value || '').toLowerCase();
+    const status = document.getElementById('filter-status').value;
+    const sort = document.getElementById('filter-sort').value;
+    const grid = document.getElementById('candidates-grid');
+    const emptyEl = document.getElementById('empty-cands');
+    grid.innerHTML = '';
+
+    let filtered = allCandidates.filter(c => {
+      const profile = c.profile || {};
+      const skills = Array.isArray(profile.skills) ? profile.skills.join(' ') : '';
+      const text = (c.name + ' ' + (profile.role||'') + ' ' + skills).toLowerCase();
+      const matchQ = !q || text.includes(q);
+      const matchS = !status || c.verificationStatus === status;
+      return matchQ && matchS;
+    });
+
+    if (sort === 'score') filtered.sort((a,b) => calculateScore(b) - calculateScore(a));
+    else filtered.sort((a,b) => a.name.localeCompare(b.name));
+
+    document.getElementById('results-count').textContent = `Showing ${filtered.length} of ${allCandidates.length} candidates`;
+
+    if (filtered.length === 0) { emptyEl.classList.remove('hidden'); return; }
+    emptyEl.classList.add('hidden');
+
+    filtered.forEach(c => {
+      const score = calculateScore(c);
+      const profile = c.profile || {};
+      const vs = c.verificationStatus || 'pending';
+      const badgeClass = vs === 'verified' ? 'badge-verified' : vs === 'rejected' ? 'badge-rejected' : 'badge-pending';
+      const isShortlisted = shortlisted.includes(c.email);
+      const skills = Array.isArray(profile.skills) ? profile.skills : [];
+      const skillTags = skills.slice(0,4).map(s => `<span class="skill-tag">${s}</span>`).join('');
+
+      const card = document.createElement('div');
+      card.className = 'candidate-card';
+      card.innerHTML = `
+        <div class="candidate-header">
+          <div class="cand-avatar">${c.name.charAt(0)}</div>
+          <div>
+            <div class="cand-name">${c.name}</div>
+            <div class="cand-role">${profile.role || 'No role specified'}</div>
+          </div>
+          <span class="verification-badge ${badgeClass}" style="margin-left:auto">${vs}</span>
+        </div>
+        <div class="skills-wrap">${skillTags || '<span style="color:var(--text-dim);font-size:0.8rem">No skills listed</span>'}</div>
+        <div class="cand-links">
+          ${profile.github ? `<a href="${profile.github}" target="_blank">🐙 GitHub</a>` : ''}
+          ${profile.linkedin ? `<a href="${profile.linkedin}" target="_blank">💼 LinkedIn</a>` : ''}
+          ${profile.portfolio ? `<a href="${profile.portfolio}" target="_blank">🌐 Portfolio</a>` : ''}
+        </div>
+        <div class="score-display">
+          <div class="score-num">${score}</div>
+          <div class="score-bar"><div class="score-fill" style="width:${score*10}%"></div></div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">/ 10</div>
+        </div>
+        <div class="cand-actions">
+          <button class="btn btn-outline btn-sm" onclick="viewProfile('${c.email}')">👁️ View Profile</button>
+          <button class="btn btn-sm ${isShortlisted ? 'btn-success' : 'btn-primary'}" onclick="toggleShortlist('${c.email}', this)">
+            ${isShortlisted ? '⭐ Shortlisted' : '+ Shortlist'}
+          </button>
+          <a href="verification.html?email=${encodeURIComponent(c.email)}" class="btn btn-outline btn-sm">🛡️ Verify</a>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function toggleShortlist(email, btn) {
+    const idx = shortlisted.indexOf(email);
+    if (idx >= 0) {
+      shortlisted.splice(idx, 1);
+      btn.textContent = '+ Shortlist';
+      btn.className = 'btn btn-sm btn-primary';
+      showToast('Removed from shortlist', 'error');
+    } else {
+      shortlisted.push(email);
+      btn.textContent = '⭐ Shortlisted';
+      btn.className = 'btn btn-sm btn-success';
+      showToast('Candidate shortlisted! ⭐');
+    }
+    localStorage.setItem('st_shortlisted', JSON.stringify(shortlisted));
+  }
+
+  function viewProfile(email) {
+    const candidate = allCandidates.find(c => c.email === email);
+    if (!candidate) return;
+    const profile = candidate.profile || {};
+    const score = calculateScore(candidate);
+    const vs = candidate.verificationStatus || 'pending';
+    const badgeClass = vs === 'verified' ? 'badge-verified' : vs === 'rejected' ? 'badge-rejected' : 'badge-pending';
+    const skills = Array.isArray(profile.skills) ? profile.skills : [];
+
+    document.getElementById('profile-modal-content').innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+        <div style="width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:1.5rem;flex-shrink:0">${candidate.name.charAt(0)}</div>
+        <div>
+          <div style="font-size:1.2rem;font-weight:700">${candidate.name}</div>
+          <div style="color:var(--orange);font-size:0.85rem">${profile.role || 'No role'}</div>
+          <div style="color:var(--text-muted);font-size:0.82rem">${candidate.email}</div>
+        </div>
+        <span class="verification-badge ${badgeClass}" style="margin-left:auto">${vs}</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:10px">
+          <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--orange)">${score}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted)">AI Score / 10</div>
+        </div>
+        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:10px">
+          <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--text)">${skills.length}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted)">Skills Listed</div>
+        </div>
+      </div>
+
+      ${profile.experience ? `
+        <div style="margin-bottom:16px">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);margin-bottom:6px">EXPERIENCE</div>
+          <div style="font-size:0.88rem;line-height:1.6">${profile.experience}</div>
+        </div>
+      ` : ''}
+
+      ${skills.length > 0 ? `
+        <div style="margin-bottom:16px">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);margin-bottom:8px">SKILLS</div>
+          <div class="skills-wrap">${skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}</div>
+        </div>
+      ` : ''}
+
+      ${profile.projects ? `
+        <div style="margin-bottom:16px">
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);margin-bottom:6px">PROJECTS</div>
+          <div style="font-size:0.88rem;line-height:1.6">${profile.projects}</div>
+        </div>
+      ` : ''}
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+        ${profile.github ? `<a href="${profile.github}" target="_blank" class="btn btn-outline btn-sm">🐙 GitHub</a>` : ''}
+        ${profile.linkedin ? `<a href="${profile.linkedin}" target="_blank" class="btn btn-outline btn-sm">💼 LinkedIn</a>` : ''}
+        ${profile.portfolio ? `<a href="${profile.portfolio}" target="_blank" class="btn btn-outline btn-sm">🌐 Portfolio</a>` : ''}
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <a href="verification.html?email=${encodeURIComponent(candidate.email)}" class="btn btn-primary" style="flex:1;justify-content:center">🛡️ Verify Candidate</a>
+        <button class="btn btn-outline" onclick="closeProfileModal()">Close</button>
+      </div>
+    `;
+    document.getElementById('profile-modal').classList.add('open');
+  }
+
+  function closeProfileModal() {
+    document.getElementById('profile-modal').classList.remove('open');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Profile – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" /><span>Skill Trace</span></a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+      <div class="sidebar-name" id="sidebar-name">Loading...</div>
+      <div class="sidebar-role" id="sidebar-role">👤 Candidate</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Main Menu</div>
+      <a href="candidate-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="edit-profile.html" class="active"><span class="nav-icon">✏️</span> Edit Profile</a>
+      <a href="job-search.html"><span class="nav-icon">🔍</span> Job Search</a>
+      <a href="my-applications.html"><span class="nav-icon">📋</span> My Applications</a>
+      <a href="resume-score.html"><span class="nav-icon">📊</span> Resume Score</a>
+      <div class="sidebar-label">Account</div>
+      <a href="edit-profile.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Edit Profile ✏️</h1>
+      <p>Keep your profile updated to maximize recruiter visibility and verification score.</p>
+    </div>
+
+    <!-- Profile Header Preview -->
+    <div class="profile-header">
+      <div class="profile-big-avatar" id="preview-avatar">A</div>
+      <div class="profile-info">
+        <h2 id="preview-name">Your Name</h2>
+        <div class="profile-role" id="preview-role">Your Role</div>
+        <div class="profile-email" id="preview-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ee97819b9cae8b838f8782c08d8183">[email&#160;protected]</a></div>
+      </div>
+      <div style="margin-left:auto">
+        <div id="score-preview" style="text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--orange)" id="score-preview-num">0</div>
+          <div style="font-size:0.8rem;color:var(--text-muted)">/ 10 Score</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <!-- Basic Info -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Basic Information</span></div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="p-name" placeholder="Alex Rivera" />
+        </div>
+        <div class="form-group">
+          <label>Role / Job Title</label>
+          <input type="text" id="p-role" placeholder="Frontend Developer" />
+        </div>
+        <div class="form-group">
+          <label>Skills (comma separated)</label>
+          <input type="text" id="p-skills" placeholder="React, TypeScript, Node.js, Python" />
+        </div>
+        <div class="form-group">
+          <label>Experience</label>
+          <textarea id="p-experience" placeholder="Describe your work experience..."></textarea>
+        </div>
+      </div>
+
+      <!-- Links & Projects -->
+      <div>
+        <div class="card" style="margin-bottom:0">
+          <div class="card-header"><span class="card-title">Links & Projects</span></div>
+          <div class="form-group">
+            <label>GitHub URL</label>
+            <input type="url" id="p-github" placeholder="https://github.com/yourname" />
+          </div>
+          <div class="form-group">
+            <label>LinkedIn URL</label>
+            <input type="url" id="p-linkedin" placeholder="https://linkedin.com/in/yourname" />
+          </div>
+          <div class="form-group">
+            <label>Portfolio URL</label>
+            <input type="url" id="p-portfolio" placeholder="https://yoursite.dev" />
+          </div>
+          <div class="form-group">
+            <label>Projects</label>
+            <textarea id="p-projects" placeholder="List your notable projects..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:24px">
+     <button class="btn btn-primary" onclick="saveProfile()">
+💾 Save Profile
+</button>
+      <a href="resume-score.html" class="btn btn-outline" style="padding:12px 24px">📊 View Score</a>
+    </div>
+
+  </main>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="script.js"></script>
+<script>
+  const user = requireAuth('candidate');
+  if (user) {
+    const profile = user.profile || {};
+
+    // Populate fields
+    document.getElementById('p-name').value = user.name || '';
+    document.getElementById('p-role').value = profile.role || '';
+    document.getElementById('p-skills').value = Array.isArray(profile.skills) ? profile.skills.join(', ') : (profile.skills || '');
+    document.getElementById('p-experience').value = profile.experience || '';
+    document.getElementById('p-github').value = profile.github || '';
+    document.getElementById('p-linkedin').value = profile.linkedin || '';
+    document.getElementById('p-portfolio').value = profile.portfolio || '';
+    document.getElementById('p-projects').value = profile.projects || '';
+
+    // Preview
+    document.getElementById('preview-avatar').textContent = user.name.charAt(0).toUpperCase();
+    document.getElementById('preview-name').textContent = user.name;
+    document.getElementById('preview-role').textContent = profile.role || 'No role set';
+    document.getElementById('preview-email').textContent = user.email;
+    document.getElementById('score-preview-num').textContent = calculateScore(user);
+
+    window.saveProfile = function () {
+
+  const user = getCurrentUser();
+
+  if (!user) {
+    alert("User not logged in");
+    return;
+  }
+
+  const skillsRaw = document.getElementById('p-skills').value;
+  const skills = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+  const updated = {
+    ...user,
+    name: document.getElementById('p-name').value.trim() || user.name,
+    profile: {
+      role: document.getElementById('p-role').value.trim(),
+      skills,
+      experience: document.getElementById('p-experience').value.trim(),
+      github: document.getElementById('p-github').value.trim(),
+      linkedin: document.getElementById('p-linkedin').value.trim(),
+      portfolio: document.getElementById('p-portfolio').value.trim(),
+      projects: document.getElementById('p-projects').value.trim()
+    }
+  };
+
+  updateUser(updated);
+
+  alert("Profile saved successfully!");
+
+  location.reload();
+};
+  

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiter Dashboard – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html">
+    <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+    <span>Skill Trace</span>
+  </a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+    <a href="post-job.html" class="btn btn-primary btn-sm">+ Post Job</a>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">R</div>
+      <div class="sidebar-name" id="sidebar-name">Recruiter</div>
+      <div class="sidebar-role" id="sidebar-role">🏢 Recruiter</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Recruiting</div>
+      <a href="recruiter-dashboard.html" class="active"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="candidate-search.html"><span class="nav-icon">🔍</span> Search Candidates</a>
+      <a href="post-job.html"><span class="nav-icon">📝</span> Post Job</a>
+      <a href="verification.html"><span class="nav-icon">🛡️</span> Verification System</a>
+      <a href="ai-analysis.html"><span class="nav-icon">🤖</span> AI Analysis</a>
+      <div class="sidebar-label">Reports</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">📈</span> Reports</a>
+      <a href="post-job.html"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Recruiter Dashboard 🏢</h1>
+      <p>Monitor candidates, verifications, and hiring pipeline in real time.</p>
+    </div>
+
+    <!-- STATS (all clickable) -->
+    <div class="stats-grid">
+      <div class="stat-card" style="--card-color:#f97316" onclick="showCandidateModal('all')">
+        <div class="stat-card-icon">👥</div>
+        <div class="stat-card-value" id="stat-total">0</div>
+        <div class="stat-card-label">Total Candidates</div>
+        <div class="stat-card-change">↑ Click to view all</div>
+      </div>
+      <div class="stat-card" style="--card-color:#22c55e" onclick="showCandidateModal('verified')">
+        <div class="stat-card-icon">✅</div>
+        <div class="stat-card-value" id="stat-verified">0</div>
+        <div class="stat-card-label">Verified Candidates</div>
+      </div>
+      <div class="stat-card" style="--card-color:#eab308" onclick="showCandidateModal('pending')">
+        <div class="stat-card-icon">⏳</div>
+        <div class="stat-card-value" id="stat-pending">0</div>
+        <div class="stat-card-label">Pending Verification</div>
+      </div>
+      <div class="stat-card" style="--card-color:#a855f7" onclick="showCandidateModal('shortlisted')">
+        <div class="stat-card-icon">⭐</div>
+        <div class="stat-card-value" id="stat-shortlisted">0</div>
+        <div class="stat-card-label">Shortlisted</div>
+      </div>
+      <div class="stat-card" style="--card-color:#3b82f6">
+        <div class="stat-card-icon">🤖</div>
+        <div class="stat-card-value" id="stat-avg-score">0</div>
+        <div class="stat-card-label">Average AI Score</div>
+      </div>
+    </div>
+
+    <!-- Applicant Management — MAIN FEATURE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Applicant Management</span>
+        <span style="font-size:0.8rem;color:var(--text-muted)" id="applicant-count"></span>
+      </div>
+      <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:16px">Accept or reject candidates. Status syncs instantly to their dashboard.</p>
+      <div id="applicant-list"></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Candidate Verification Status</h3>
+        <canvas id="chart-verification" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Skills Distribution</h3>
+        <canvas id="chart-skills" height="220"></canvas>
+      </div>
+      <div class="chart-card" style="grid-column:1/-1">
+        <h3>Hiring Funnel</h3>
+        <canvas id="chart-funnel" height="140"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Candidates -->
+    <div class="card" style="margin-top:22px">
+      <div class="card-header">
+        <span class="card-title">Recent Candidates</span>
+        <a href="candidate-search.html" class="btn btn-outline btn-sm">View All</a>
+      </div>
+      <div id="recent-candidates"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Candidate List -->
+<div class="modal-overlay" id="list-modal">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Candidates</span>
+      <button class="modal-close" onclick="closeListModal()">✕</button>
+    </div>
+    <div id="modal-list"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('recruiter');
+  let candidates = [];
+
+  if (user) {
+    candidates = getUsers().filter(u => u.role === 'candidate');
+    const verified = candidates.filter(c => c.verificationStatus === 'verified');
+    const pending = candidates.filter(c => c.verificationStatus === 'pending');
+    const shortlisted = JSON.parse(localStorage.getItem('st_shortlisted') || '[]');
+    const avgScore = candidates.length
+      ? (candidates.reduce((s, c) => s + calculateScore(c), 0) / candidates.length).toFixed(1) : 0;
+
+    setTimeout(() => {
+      animateNumber(document.getElementById('stat-total'), candidates.length);
+      animateNumber(document.getElementById('stat-verified'), verified.length);
+      animateNumber(document.getElementById('stat-pending'), pending.length);
+      animateNumber(document.getElementById('stat-shortlisted'), shortlisted.length);
+      animateNumber(document.getElementById('stat-avg-score'), parseFloat(avgScore), '', 1000);
+    }, 200);
+
+    // ── Applicant Management ────────────────
+    renderApplicantList();
+
+    // ── Charts ──────────────────────────────
+    Chart.defaults.color = '#94a3b8';
+    const chartFont = { family: 'Inter', size: 12 };
+
+    new Chart(document.getElementById('chart-verification'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Verified', 'Pending', 'Rejected'],
+        datasets: [{ data: [verified.length, pending.length, candidates.filter(c=>c.verificationStatus==='rejected').length], backgroundColor: ['#22c55e','#eab308','#ef4444'], borderWidth: 0, hoverOffset: 6 }]
+      },
+      options: { plugins: { legend: { labels: { color: '#94a3b8', font: chartFont } } }, cutout: '65%', responsive: true }
+    });
+
+    const skillCount = {};
+    candidates.forEach(c => { const skills = (c.profile && c.profile.skills) || []; skills.forEach(s => { skillCount[s] = (skillCount[s]||0) + 1; }); });
+    const topSkills = Object.entries(skillCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    new Chart(document.getElementById('chart-skills'), {
+      type: 'bar',
+      data: { labels: topSkills.map(s=>s[0]), datasets: [{ label: 'Candidates', data: topSkills.map(s=>s[1]), backgroundColor: 'rgba(249,115,22,0.7)', borderRadius: 6, borderSkipped: false }] },
+      options: { plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94a3b8', font: chartFont } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94a3b8', stepSize: 1 } } } }
+    });
+
+    const apps = getApplications();
+    const acceptedCount = apps.filter(a => a.status === 'Accepted').length;
+    new Chart(document.getElementById('chart-funnel'), {
+      type: 'line',
+      data: {
+        labels: ['Applications', 'Shortlisted', 'Interviewed', 'Hired'],
+        datasets: [{ label: 'Hiring Funnel', data: [apps.length, shortlisted.length, Math.floor(shortlisted.length * 0.6), acceptedCount], borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.09)', fill: true, tension: 0.4, pointBackgroundColor: '#f97316', pointRadius: 5 }]
+      },
+      options: { plugins: { legend: { labels: { color: '#94a3b8', font: chartFont } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94a3b8' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94a3b8', stepSize: 1 } } } }
+    });
+
+    // ── Recent Candidates ───────────────────
+    const rcEl = document.getElementById('recent-candidates');
+    candidates.slice(0, 5).forEach(c => {
+      const score = calculateScore(c);
+      const vs = c.verificationStatus || 'pending';
+      const badgeClass = vs === 'verified' ? 'badge-verified' : vs === 'rejected' ? 'badge-rejected' : 'badge-pending';
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)';
+      div.innerHTML = `
+        <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0">${c.name.charAt(0)}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:0.88rem">${c.name}</div>
+          <div style="color:var(--text-muted);font-size:0.79rem">${(c.profile && c.profile.role) || 'No role'}</div>
+        </div>
+        <span class="verification-badge ${badgeClass}">${vs}</span>
+        <div style="font-family:'Poppins',sans-serif;font-weight:700;color:var(--orange)">${score}<span style="font-size:0.68rem;color:var(--text-muted)">/10</span></div>
+        <a href="candidate-search.html" class="btn btn-outline btn-sm">View</a>`;
+      rcEl.appendChild(div);
+    });
+    if (candidates.length === 0) {
+      rcEl.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><h3>No Candidates Yet</h3></div>';
+    }
+  }
+
+  // ── Render Applicant Management ──────────
+  function renderApplicantList() {
+    const apps = getApplications();
+    const jobs = getJobs();
+    const el = document.getElementById('applicant-list');
+    el.innerHTML = '';
+    document.getElementById('applicant-count').textContent = apps.length + ' total applications';
+
+    if (apps.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h3>No applications yet</h3><p>Candidates will appear here after applying to jobs.</p></div>';
+      return;
+    }
+
+    // Group by job
+    const byJob = {};
+    apps.forEach(app => {
+      if (!byJob[app.jobId]) byJob[app.jobId] = [];
+      byJob[app.jobId].push(app);
+    });
+
+    Object.entries(byJob).forEach(([jobId, jobApps]) => {
+      const job = jobs.find(j => j.id === jobId);
+      if (!job) return;
+
+      const section = document.createElement('div');
+      section.style.cssText = 'margin-bottom:18px;border:1px solid var(--border);border-radius:12px;overflow:hidden';
+      section.innerHTML = `<div style="background:rgba(249,115,22,0.07);padding:12px 16px;font-weight:600;font-size:0.875rem;border-bottom:1px solid var(--border)">📌 ${job.title} <span style="color:var(--orange)">@ ${job.company}</span> <span style="color:var(--text-dim);font-size:0.78rem;margin-left:6px">${jobApps.length} applicant${jobApps.length>1?'s':''}</span></div>`;
+
+      jobApps.forEach(app => {
+        const candidate = getUserByEmail(app.candidateEmail);
+        if (!candidate) return;
+        const score = calculateScore(candidate);
+        const statusClass = getStatusClass(app.status);
+        const statusIcon = getStatusIcon(app.status);
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:13px;padding:13px 16px;border-bottom:1px solid var(--border)';
+        row.id = `app-row-${jobId}-${app.candidateEmail.replace('@','_').replace('.','_')}`;
+        row.innerHTML = `
+          <div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0">${candidate.name.charAt(0)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:0.875rem">${candidate.name}</div>
+            <div style="color:var(--text-muted);font-size:0.78rem">${(candidate.profile && candidate.profile.role) || 'No role'} · Score: ${score}/10</div>
+          </div>
+          <span class="app-status ${statusClass} app-status-badge-${jobId}-${app.candidateEmail}">${statusIcon} ${app.status}</span>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="app-action-btn accept" onclick="changeAppStatus('${jobId}','${app.candidateEmail}','Accepted',this)">✅ Accept</button>
+            <button class="app-action-btn reject" onclick="changeAppStatus('${jobId}','${app.candidateEmail}','Rejected',this)">❌ Reject</button>
+          </div>`;
+        section.appendChild(row);
+      });
+
+      el.appendChild(section);
+    });
+  }
+
+  // ── Status Change (syncs to candidate) ───
+  function changeAppStatus(jobId, candidateEmail, newStatus, btn) {
+    const success = updateApplicationStatus(jobId, candidateEmail, newStatus);
+    if (success) {
+      // Update the badge in the row
+      const row = btn.closest('[style]');
+      const badge = row.querySelector(`[class*="app-status"]`);
+      if (badge) {
+        const statusClass = getStatusClass(newStatus);
+        badge.className = `app-status ${statusClass}`;
+        badge.innerHTML = `${getStatusIcon(newStatus)} ${newStatus}`;
+      }
+      showToast(`Application ${newStatus.toLowerCase()} for ${candidateEmail.split('@')[0]}! Candidate notified.`, newStatus === 'Accepted' ? 'success' : 'error');
+    }
+  }
+
+  // ── Candidate Modal ───────────────────────
+  function showCandidateModal(type) {
+    const modal = document.getElementById('list-modal');
+    const titleEl = document.getElementById('modal-title');
+    const listEl = document.getElementById('modal-list');
+    listEl.innerHTML = '';
+    const shortlisted = JSON.parse(localStorage.getItem('st_shortlisted') || '[]');
+    let filtered = candidates, title = 'All Candidates';
+    if (type === 'verified') { filtered = candidates.filter(c => c.verificationStatus === 'verified'); title = '✅ Verified Candidates'; }
+    else if (type === 'pending') { filtered = candidates.filter(c => c.verificationStatus === 'pending'); title = '⏳ Pending Verification'; }
+    else if (type === 'shortlisted') { filtered = candidates.filter(c => shortlisted.includes(c.email)); title = '⭐ Shortlisted Candidates'; }
+    titleEl.textContent = title;
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><h3>No candidates in this category</h3></div>';
+    } else {
+      filtered.forEach(c => {
+        const score = calculateScore(c);
+        const vs = c.verificationStatus || 'pending';
+        const badgeClass = vs === 'verified' ? 'badge-verified' : vs === 'rejected' ? 'badge-rejected' : 'badge-pending';
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:13px;padding:13px;border:1px solid var(--border);border-radius:10px;margin-bottom:9px';
+        div.innerHTML = `
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0">${c.name.charAt(0)}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:0.88rem">${c.name}</div>
+            <div style="color:var(--text-muted);font-size:0.79rem">${(c.profile && c.profile.role) || 'No role'}</div>
+          </div>
+          <span class="verification-badge ${badgeClass}">${vs}</span>
+          <div style="font-family:'Poppins',sans-serif;font-weight:700;color:var(--orange)">${score}/10</div>`;
+        listEl.appendChild(div);
+      });
+    }
+    modal.classList.add('open');
+  }
+  function closeListModal() { document.getElementById('list-modal').classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); }); });
+</script>
+</body>
+</html>

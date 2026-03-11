@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verification System – Skill Trace</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="nav-logo" href="index.html"><img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" /><span>Skill Trace</span></a>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+  </div>
+</nav>
+
+<div class="dashboard-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-logo-wrap">
+      <img src="logo.png" alt="Skill Trace" onerror="this.style.display='none'" />
+      <span>Skill Trace</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">R</div>
+      <div class="sidebar-name" id="sidebar-name">Recruiter</div>
+      <div class="sidebar-role" id="sidebar-role">🏢 Recruiter</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-label">Recruiting</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="candidate-search.html"><span class="nav-icon">🔍</span> Search Candidates</a>
+      <a href="post-job.html"><span class="nav-icon">📝</span> Post Job</a>
+      <a href="verification.html" class="active"><span class="nav-icon">🛡️</span> Verification System</a>
+      <a href="ai-analysis.html"><span class="nav-icon">🤖</span> AI Analysis</a>
+      <div class="sidebar-label">Reports</div>
+      <a href="recruiter-dashboard.html"><span class="nav-icon">📈</span> Reports</a>
+    </nav>
+    <div class="sidebar-logout">
+      <a href="#" id="logout-btn"><span>🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Verification System 🛡️</h1>
+      <p>Run AI-powered multi-layer verification on candidates.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px">
+
+      <!-- Candidate List -->
+      <div>
+        <div class="card" style="margin-bottom:24px">
+          <div class="card-header">
+            <span class="card-title">Select Candidate to Verify</span>
+          </div>
+          <div class="search-bar" style="margin-bottom:16px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="verify-search" placeholder="Search candidate..." oninput="renderVerifyList()" />
+          </div>
+          <div id="verify-list"></div>
+        </div>
+      </div>
+
+      <!-- Verification Panel -->
+      <div>
+        <div class="card" id="verify-panel">
+          <div style="text-align:center;padding:40px;color:var(--text-muted)">
+            <div style="font-size:3rem;margin-bottom:16px">🛡️</div>
+            <h3>Select a Candidate</h3>
+            <p style="font-size:0.85rem;margin-top:8px">Choose a candidate from the list to run verification checks.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Verifications -->
+    <div class="card" style="margin-top:0">
+      <div class="card-header"><span class="card-title">Verification History</span></div>
+      <div id="verify-history"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Verification Animation Overlay -->
+<div class="verify-overlay" id="verify-overlay" style="display:none">
+  <div class="verify-modal">
+    <div class="verify-icon">🔍</div>
+    <h2 style="margin-bottom:8px">Running Verification</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem" id="verify-candidate-name">Analyzing candidate...</p>
+
+    <ul class="verify-steps">
+      <li class="verify-step">
+        <div class="step-dot waiting" id="step-1-dot">1</div>
+        <span id="step-1-text">Analyzing Resume...</span>
+        <span id="step-1-status" style="margin-left:auto;color:var(--text-muted)">⏳</span>
+      </li>
+      <li class="verify-step">
+        <div class="step-dot waiting" id="step-2-dot">2</div>
+        <span id="step-2-text">Checking GitHub...</span>
+        <span id="step-2-status" style="margin-left:auto;color:var(--text-muted)">⏳</span>
+      </li>
+      <li class="verify-step">
+        <div class="step-dot waiting" id="step-3-dot">3</div>
+        <span id="step-3-text">Scanning LinkedIn...</span>
+        <span id="step-3-status" style="margin-left:auto;color:var(--text-muted)">⏳</span>
+      </li>
+      <li class="verify-step">
+        <div class="step-dot waiting" id="step-4-dot">4</div>
+        <span id="step-4-text">Generating Skill Score...</span>
+        <span id="step-4-status" style="margin-left:auto;color:var(--text-muted)">⏳</span>
+      </li>
+    </ul>
+
+    <div id="verify-result" style="display:none;margin-top:20px">
+      <div id="verify-result-icon" style="font-size:3rem;margin-bottom:12px"></div>
+      <div id="verify-result-text" style="font-size:1.1rem;font-weight:700;margin-bottom:8px"></div>
+      <div id="verify-result-sub" style="color:var(--text-muted);font-size:0.88rem;margin-bottom:20px"></div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-success btn-sm" onclick="finalizeVerification('verified')">✅ Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="finalizeVerification('rejected')">❌ Reject</button>
+        <button class="btn btn-outline btn-sm" onclick="closeVerification()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  const user = requireAuth('recruiter');
+  let candidates = [];
+  let currentCandidate = null;
+
+  // Pre-select from URL
+  const params = new URLSearchParams(window.location.search);
+  const preEmail = params.get('email');
+
+  if (user) {
+    candidates = getUsers().filter(u => u.role === 'candidate');
+    renderVerifyList();
+    renderHistory();
+
+    if (preEmail) {
+      const c = candidates.find(c => c.email === decodeURIComponent(preEmail));
+      if (c) setTimeout(() => selectCandidate(c), 300);
+    }
+  }
+
+  function renderVerifyList() {
+    const q = (document.getElementById('verify-search').value || '').toLowerCase();
+    const listEl = document.getElementById('verify-list');
+    listEl.innerHTML = '';
+
+    const filtered = candidates.filter(c => {
+      return !q || c.name.toLowerCase().includes(q) || ((c.profile && c.profile.role) || '').toLowerCase().includes(q);
+    });
+
+    filtered.forEach(c => {
+      const vs = c.verificationStatus || 'pending';
+      const badgeClass = vs === 'verified' ? 'badge-verified' : vs === 'rejected' ? 'badge-rejected' : 'badge-pending';
+      const div = document.createElement('div');
+      div.style.cssText = `display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;cursor:pointer;margin-bottom:6px;border:1px solid var(--border);transition:all 0.2s${currentCandidate && currentCandidate.email === c.email ? ';border-color:var(--orange);background:rgba(249,115,22,0.08)' : ''}`;
+      div.innerHTML = `
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0">${c.name.charAt(0)}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:0.88rem">${c.name}</div>
+          <div style="color:var(--text-muted);font-size:0.78rem">${(c.profile && c.profile.role) || 'No role'}</div>
+        </div>
+        <span class="verification-badge ${badgeClass}">${vs}</span>
+      `;
+      div.onclick = () => selectCandidate(c);
+      listEl.appendChild(div);
+    });
+  }
+
+  function selectCandidate(c) {
+    currentCandidate = c;
+    renderVerifyList();
+    const profile = c.profile || {};
+    const score = calculateScore(c);
+    const vs = c.verificationStatus || 'pending';
+
+    document.getElementById('verify-panel').innerHTML = `
+      <div class="card-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:1.2rem">${c.name.charAt(0)}</div>
+          <div>
+            <div style="font-weight:700">${c.name}</div>
+            <div style="color:var(--text-muted);font-size:0.82rem">${profile.role || 'No role'}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="padding:14px;background:var(--bg);border-radius:10px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--orange)">${score}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">AI Score / 10</div>
+        </div>
+        <div style="padding:14px;background:var(--bg);border-radius:10px;text-align:center">
+          <div style="font-size:1.4rem;margin-bottom:4px">${vs === 'verified' ? '✅' : vs === 'rejected' ? '❌' : '⏳'}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${vs}</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Verification Checks</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px">
+            <span>${profile.github ? '✅' : '❌'}</span>
+            <span style="font-size:0.85rem">GitHub Profile</span>
+            <span style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${profile.github ? 'Linked' : 'Missing'}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px">
+            <span>${profile.linkedin ? '✅' : '❌'}</span>
+            <span style="font-size:0.85rem">LinkedIn Profile</span>
+            <span style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${profile.linkedin ? 'Linked' : 'Missing'}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px">
+            <span>${(profile.skills && profile.skills.length > 0) ? '✅' : '❌'}</span>
+            <span style="font-size:0.85rem">Skills Listed</span>
+            <span style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${(profile.skills && profile.skills.length) || 0} skills</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:8px">
+            <span>${profile.experience ? '✅' : '❌'}</span>
+            <span style="font-size:0.85rem">Experience</span>
+            <span style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${profile.experience ? 'Added' : 'Missing'}</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary w-full" onclick="startVerification()" style="justify-content:center;padding:13px">
+        🔍 Run Verification
+      </button>
+    `;
+  }
+
+  function startVerification() {
+    if (!currentCandidate) return;
+    document.getElementById('verify-candidate-name').textContent = 'Analyzing ' + currentCandidate.name + '...';
+    document.getElementById('verify-overlay').style.display = 'flex';
+    document.getElementById('verify-result').style.display = 'none';
+
+    // Reset steps
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById(`step-${i}-dot`).className = 'step-dot waiting';
+      document.getElementById(`step-${i}-dot`).textContent = i;
+      document.getElementById(`step-${i}-status`).textContent = '⏳';
+      document.getElementById(`step-${i}-status`).style.color = 'var(--text-muted)';
+    }
+
+    // Animate steps
+    const profile = currentCandidate.profile || {};
+    const checks = [
+      { pass: !!(profile.skills && profile.skills.length > 0 && profile.experience) },
+      { pass: !!profile.github },
+      { pass: !!profile.linkedin },
+      { pass: calculateScore(currentCandidate) >= 4 }
+    ];
+
+    let delay = 0;
+    checks.forEach((check, i) => {
+      const idx = i + 1;
+      setTimeout(() => {
+        document.getElementById(`step-${idx}-dot`).className = 'step-dot active';
+      }, delay);
+      delay += 600;
+      setTimeout(() => {
+        document.getElementById(`step-${idx}-dot`).className = `step-dot ${check.pass ? 'done' : 'done'}`;
+        document.getElementById(`step-${idx}-dot`).textContent = check.pass ? '✓' : '✗';
+        document.getElementById(`step-${idx}-status`).textContent = check.pass ? '✅' : '⚠️';
+        document.getElementById(`step-${idx}-status`).style.color = check.pass ? 'var(--success)' : 'var(--warning)';
+      }, delay);
+      delay += 200;
+    });
+
+    // Show result
+    setTimeout(() => {
+      const score = calculateScore(currentCandidate);
+      const passed = checks.filter(c => c.pass).length;
+      const isVerified = passed >= 3 && score >= 5;
+
+      const resultEl = document.getElementById('verify-result');
+      document.getElementById('verify-result-icon').textContent = isVerified ? '✅' : passed >= 2 ? '⚠️' : '❌';
+      document.getElementById('verify-result-text').textContent = isVerified ? 'Verification Passed!' : passed >= 2 ? 'Partially Verified' : 'Verification Failed';
+      document.getElementById('verify-result-sub').textContent = isVerified
+        ? `${currentCandidate.name} passed all key checks. Score: ${score}/10`
+        : `${passed}/4 checks passed. Consider reviewing their profile manually.`;
+
+      resultEl.style.display = 'block';
+    }, delay + 400);
+  }
+
+  function finalizeVerification(status) {
+    if (!currentCandidate) return;
+    const users = getUsers();
+    const idx = users.findIndex(u => u.email === currentCandidate.email);
+    if (idx >= 0) {
+      users[idx].verificationStatus = status;
+      saveUsers(users);
+      currentCandidate.verificationStatus = status;
+
+      // Also update current user if same
+      const cu = getCurrentUser();
+      if (cu && cu.email === currentCandidate.email) {
+        setCurrentUser({ ...cu, verificationStatus: status });
+      }
+    }
+
+    // Save to history
+    const history = JSON.parse(localStorage.getItem('st_verify_history') || '[]');
+    history.unshift({
+      candidateName: currentCandidate.name,
+      status,
+      score: calculateScore(currentCandidate),
+      date: new Date().toLocaleDateString()
+    });
+    localStorage.setItem('st_verify_history', JSON.stringify(history.slice(0, 20)));
+
+    closeVerification();
+    showToast(status === 'verified' ? `${currentCandidate.name} verified! ✅` : `Verification rejected for ${currentCandidate.name}`, status === 'verified' ? 'success' : 'error');
+    renderVerifyList();
+    renderHistory();
+    selectCandidate(currentCandidate);
+  }
+
+  function closeVerification() {
+    document.getElementById('verify-overlay').style.display = 'none';
+  }
+
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('st_verify_history') || '[]');
+    const el = document.getElementById('verify-history');
+    if (history.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h3>No verification history yet</h3></div>';
+      return;
+    }
+    el.innerHTML = '';
+    history.forEach(h => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--border)';
+      const badgeClass = h.status === 'verified' ? 'badge-verified' : h.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+      div.innerHTML = `
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--orange),#fbbf24);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;flex-shrink:0">${h.candidateName.charAt(0)}</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:0.88rem">${h.candidateName}</div>
+          <div style="color:var(--text-muted);font-size:0.78rem">📅 ${h.date} • Score: ${h.score}/10</div>
+        </div>
+        <span class="verification-badge ${badgeClass}">${h.status}</span>
+      `;
+      el.appendChild(div);
+    });
+  }
+</script>
+</body>
+</html>

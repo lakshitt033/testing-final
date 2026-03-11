@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skill Trace – Detect Real Talent</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- LOGO INTRO ANIMATION OVERLAY -->
+<div id="logo-intro-overlay">
+  <img id="logo-intro-img" src="logo.png" alt="Skill Trace" onerror="this.style.display='none';document.getElementById('logo-intro-text').style.display='block'" />
+  <div id="logo-intro-text" style="display:none;font-family:'Poppins',sans-serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:logoIntro 2.5s ease forwards">⬡ Skill Trace</div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="nav-logo" href="index.html">
+    <img src="logo.png" alt="Skill Trace Logo" onerror="this.style.display='none'" />
+    <span>Skill Trace</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#reviews">Reviews</a>
+  </div>
+  <div class="nav-actions">
+    <button class="theme-toggle">🌙</button>
+    <a href="login.html" class="btn btn-outline">Login</a>
+    <a href="signup.html" class="btn btn-primary">Get Started →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <!-- Watermark logo behind text -->
+  <img class="hero-watermark" src="logo.png" alt="" onerror="this.style.display='none'" />
+
+  <div class="hero-logo-wrap">
+    <div class="radar-ring"></div>
+    <div class="radar-ring"></div>
+    <div class="radar-ring"></div>
+    <img class="hero-logo-img" src="logo.png" alt="Skill Trace"
+         onerror="this.outerHTML='<div style=\'font-size:5rem;animation:float 3.2s ease-in-out infinite;filter:drop-shadow(0 0 28px rgba(249,115,22,0.6));position:relative;z-index:1\'>⬡</div>'" />
+  </div>
+
+  <div class="hero-badge">🔥 AI-Powered Hiring Platform</div>
+
+  <h1>Detecting Real Talent<br /><span>Beyond Resumes</span></h1>
+  <p>Skill Trace authenticates candidate credentials, work history and projects so companies hire with confidence.</p>
+
+  <div class="hero-btns">
+    <a href="signup.html" class="btn btn-primary" style="padding:13px 30px;font-size:0.95rem">Get Started Free</a>
+    <a href="login.html" class="btn btn-outline" style="padding:13px 30px;font-size:0.95rem">Login →</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item"><div class="stat-num" data-target="12000">0</div><div class="stat-label">Candidates Verified</div></div>
+    <div class="stat-item"><div class="stat-num" data-target="840">0</div><div class="stat-label">Companies Hiring</div></div>
+    <div class="stat-item"><div class="stat-num" data-target="97" data-suffix="%">0</div><div class="stat-label">Verification Accuracy</div></div>
+    <div class="stat-item"><div class="stat-num" data-target="4.9" data-decimal>0</div><div class="stat-label">Average Rating</div></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-header">
+    <div class="section-label">Features</div>
+    <h2>Everything You Need to Hire Right</h2>
+    <p>Our AI-powered platform checks every layer of a candidate's profile before you make the call.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>AI Skill Analyzer</h3>
+      <p>Our AI scores candidates across technical skills, soft skills, and domain expertise with multi-dimension analysis.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <h3>Recruiter Search Dashboard</h3>
+      <p>Filter and search through verified talent with advanced filters by skills, experience, score, and availability.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <h3>Multi-Layer Verification</h3>
+      <p>Cross-reference GitHub activity, LinkedIn profile, portfolio links, and project authenticity simultaneously.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📁</div>
+      <h3>Project Authenticity Scanner</h3>
+      <p>Detect real vs copied projects. Our scanner checks commit history, code quality, and contribution timelines.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">▶️</div>
+      <h3>Instant Project Demo Viewer</h3>
+      <p>Recruiters can preview candidate projects live from their dashboard without leaving the platform.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Talent Dashboard</h3>
+      <p>Complete analytics for both candidates and recruiters — track applications, scores, and shortlists in real time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div style="max-width:1200px;margin:0 auto;padding:0 40px">
+    <div class="section-header">
+      <div class="section-label">How It Works</div>
+      <h2>From Job Post to Hire in 4 Steps</h2>
+    </div>
+    <div class="how-steps">
+      <div class="step-item"><div class="step-num">1</div><h3>Post a Job</h3><p>Recruiter creates a job listing with required skills and experience.</p></div>
+      <div class="step-item"><div class="step-num">2</div><h3>AI Matches Talent</h3><p>Our AI finds best-fit candidates from the verified pool instantly.</p></div>
+      <div class="step-item"><div class="step-num">3</div><h3>Verify Profile</h3><p>Recruiter runs multi-layer verification on shortlisted candidates.</p></div>
+      <div class="step-item"><div class="step-num">4</div><h3>Hire With Confidence</h3><p>Make offers knowing every detail has been verified and scored.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-header">
+    <div class="section-label">Pricing</div>
+    <h2>Simple, Transparent Pricing</h2>
+    <p>Start free, scale as you grow. No hidden fees.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <h3>Starter</h3>
+      <div class="pricing-price">$0<span>/mo</span></div>
+      <p>Perfect for individual candidates and small teams.</p>
+      <ul class="pricing-features">
+        <li>1 Recruiter Seat</li><li>Up to 50 Candidates</li><li>Basic AI Scoring</li><li>GitHub Verification</li><li>Email Support</li>
+      </ul>
+      <a href="signup.html" class="btn btn-outline w-full" style="justify-content:center">Get Started Free</a>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-badge">Most Popular</div>
+      <h3>Pro</h3>
+      <div class="pricing-price">$49<span>/mo</span></div>
+      <p>For growing companies that hire frequently.</p>
+      <ul class="pricing-features">
+        <li>5 Recruiter Seats</li><li>Unlimited Candidates</li><li>Advanced AI Analysis</li><li>Full Verification Suite</li><li>Priority Support</li><li>Analytics Dashboard</li>
+      </ul>
+      <a href="signup.html" class="btn btn-primary w-full" style="justify-content:center">Start Pro Trial</a>
+    </div>
+    <div class="pricing-card">
+      <h3>Enterprise</h3>
+      <div class="pricing-price">$199<span>/mo</span></div>
+      <p>For large teams with high-volume hiring needs.</p>
+      <ul class="pricing-features">
+        <li>Unlimited Seats</li><li>Unlimited Candidates</li><li>Custom AI Models</li><li>API Access</li><li>Dedicated Manager</li><li>SLA Guarantee</li>
+      </ul>
+      <a href="signup.html" class="btn btn-outline w-full" style="justify-content:center">Contact Sales</a>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section" id="reviews" style="padding-top:0">
+  <div class="section-header">
+    <div class="section-label">Reviews</div>
+    <h2>Loved by Hiring Teams</h2>
+  </div>
+  <div class="reviews-grid">
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"Skill Trace completely changed how we screen candidates. The GitHub verification alone saved us from 3 bad hires last quarter."</p>
+      <div class="review-author"><div class="review-avatar">J</div><div><div class="review-name">Jessica Tan</div><div class="review-role">Head of Engineering, Stripe</div></div></div>
+    </div>
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"The AI scoring is scarily accurate. We shortlisted candidates based on scores and every single hire has been outstanding."</p>
+      <div class="review-author"><div class="review-avatar">M</div><div><div class="review-name">Marcus Webb</div><div class="review-role">CTO, DataLayer Inc.</div></div></div>
+    </div>
+    <div class="review-card">
+      <div class="review-stars">★★★★☆</div>
+      <p class="review-text">"As a candidate, having a verified profile on Skill Trace got me 3x more recruiter responses compared to LinkedIn alone."</p>
+      <div class="review-author"><div class="review-avatar">A</div><div><div class="review-name">Aisha Okafor</div><div class="review-role">Full Stack Developer</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding:80px 40px;text-align:center;background:var(--bg-card);border-top:1px solid var(--border)">
+  <h2 style="font-size:2.3rem;font-weight:700;margin-bottom:14px">Ready to Hire Smarter?</h2>
+  <p style="color:var(--text-muted);max-width:380px;margin:0 auto 28px;line-height:1.72;font-size:0.95rem">Join thousands of companies hiring with confidence through verified talent.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+    <a href="signup.html" class="btn btn-primary" style="padding:13px 30px;font-size:0.95rem">Start Free Today</a>
+    <a href="login.html" class="btn btn-outline" style="padding:13px 30px;font-size:0.95rem">View Demo</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-logo">⬡ Skill Trace</div>
+  <p>Authenticating talent for a smarter hiring world.</p>
+  <p style="margin-top:16px">© 2025 Skill Trace. Built for the future of hiring.</p>
+</footer>
+
+<script src="script.js"></script>
+<script>
+  // Animate hero stats on scroll into view
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        document.querySelectorAll('[data-target]').forEach(el => {
+          const target = parseFloat(el.getAttribute('data-target'));
+          const suffix = el.getAttribute('data-suffix') || '';
+          const isDecimal = el.hasAttribute('data-decimal');
+          let current = 0; const steps = 60;
+          const increment = target / steps;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) { current = target; clearInterval(timer); }
+            el.textContent = isDecimal ? current.toFixed(1) + suffix : Math.floor(current).toLocaleString() + suffix;
+          }, 1400 / steps);
+        });
+        observer.disconnect();
+      }
+    });
+  });
+  const statsEl = document.querySelector('.hero-stats');
+  if (statsEl) observer.observe(statsEl);
+</script>
+</body>
+</html>
